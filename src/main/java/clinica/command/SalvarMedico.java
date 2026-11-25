@@ -1,6 +1,7 @@
 package clinica.command;
 
-import clinica.dao.MedicoDAO;
+import clinica.dao.DAOFactory;
+import clinica.dao.IMedicoDAO;
 import clinica.model.Medico;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,12 +25,12 @@ public class SalvarMedico implements ICommand {
             return "medico-form.jsp";
         }
 
-        MedicoDAO dao = new MedicoDAO();
+        IMedicoDAO dao = DAOFactory.criarMedicoDAO();
         if (medico.getId() == 0) {
             dao.inserir(medico);
-        } else {
-            dao.atualizar(medico);
+            return "redirect:controller?acao=ListarMedicos&msg=salvo";
         }
+        dao.atualizar(medico);
         return "redirect:controller?acao=ListarMedicos&msg=salvo";
     }
 }

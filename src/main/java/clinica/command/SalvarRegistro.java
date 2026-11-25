@@ -1,6 +1,7 @@
 package clinica.command;
 
-import clinica.dao.RegistroAtendimentoDAO;
+import clinica.dao.DAOFactory;
+import clinica.dao.IRegistroAtendimentoDAO;
 import clinica.model.RegistroAtendimento;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,7 +12,7 @@ public class SalvarRegistro implements ICommand {
     @Override
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
         int consultaId = Integer.parseInt(request.getParameter("consultaId"));
-        RegistroAtendimentoDAO dao = new RegistroAtendimentoDAO();
+        IRegistroAtendimentoDAO dao = DAOFactory.criarRegistroAtendimentoDAO();
 
         if (dao.buscarPorConsulta(consultaId) != null) {
             throw new Exception("Esta consulta já possui um registro de atendimento.");

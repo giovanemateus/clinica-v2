@@ -23,18 +23,23 @@ class SalvarConsulta {
 
 abstract class ApiBase {
   # service(request, response) : void
-  # doPatch(request, response) : void
+  # get(request, response) : void
+  # post(request, response) : void
+  # put(request, response) : void
+  # patch(request, response) : void
+  # delete(request, response) : void
   # pegarId(request) : int
   # lerJson(request, classe : Class) : T
   # enviarJson(response, status : int, objeto : Object) : void
+  # enviarConflito(response, mensagem : String, sugestoes : List<String>) : void
 }
 
 class ConsultaApi {
-  # doGet(request, response) : void
-  # doPost(request, response) : void
-  # doPut(request, response) : void
-  # doPatch(request, response) : void
-  # doDelete(request, response) : void
+  # get(request, response) : void
+  # post(request, response) : void
+  # put(request, response) : void
+  # patch(request, response) : void
+  # delete(request, response) : void
 }
 
 class ConsultaRequest <<record>> {
@@ -44,6 +49,7 @@ class ConsultaRequest <<record>> {
   hora : String
   valor : Double
   exames : String
+  + paraConsulta(id : int, paciente : Paciente, medico : Medico) : Consulta
 }
 
 class ServiceFactory {
@@ -79,6 +85,13 @@ interface IConsultaDAO <<interface>> {
 
 class ConsultaDAO
 
+class DAOFactory {
+  + {static} criarConsultaDAO() : IConsultaDAO
+  + {static} criarMedicoDAO() : IMedicoDAO
+  + {static} criarPacienteDAO() : IPacienteDAO
+  + {static} criarRegistroAtendimentoDAO() : IRegistroAtendimentoDAO
+}
+
 FrontController --|> HttpServlet
 ApiBase --|> HttpServlet
 ConsultaApi --|> ApiBase
@@ -94,11 +107,14 @@ ConsultaService --> "1" IConsultaDAO : consultaDAO
 ConsultaService --> "1" AgendaService : agendaService
 AgendaService --> "1" IConsultaDAO : consultaDAO
 ConsultaDAO ..|> IConsultaDAO
+ServiceFactory ..> DAOFactory : usa
+DAOFactory ..> ConsultaDAO : <<create>>
 
 note bottom of IConsultaDAO
   DIP: os services (alto nível) dependem da
   abstração IConsultaDAO, recebida pelo construtor.
   O ConsultaDAO (baixo nível) implementa a interface.
+  Só a DAOFactory conhece as classes concretas.
   Nos testes, o Mockito substitui o DAO (LSP).
 end note
 @enduml

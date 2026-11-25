@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -111,6 +112,20 @@ class AgendaServiceTest {
         //Assert
         assertEquals(5, sugestoes.size());
         assertFalse(sugestoes.stream().anyMatch(s -> s.endsWith("08:00") || s.endsWith("08:30")));
+    }
+
+    @Test
+    @DisplayName("Nao deve sugerir horario quando a agenda do medico esta toda ocupada")
+    void sugerirHorariosAgendaLotada() throws Exception {
+        //Arrange
+        LocalDate dia = proximoDiaUtil();
+        when(consultaDAO.listarHorariosOcupados(anyInt(), anyString(), anyInt())).thenReturn(Arrays.asList(AgendaService.HORARIOS));
+
+        //Act
+        List<String> sugestoes = agendaService.sugerirHorarios(1, dia.toString(), 0);
+
+        //Assert
+        assertTrue(sugestoes.isEmpty());
     }
 
     // ----------------- auxiliares -----------------

@@ -1,8 +1,6 @@
 package clinica.command;
 
-import clinica.dao.ConsultaDAO;
-import clinica.dao.MedicoDAO;
-import clinica.dao.PacienteDAO;
+import clinica.dao.DAOFactory;
 import clinica.decorator.ExameFactory;
 import clinica.service.AgendaService;
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +13,7 @@ public class FormConsulta implements ICommand {
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String id = request.getParameter("id");
         if (id != null && !id.isEmpty()) {
-            request.setAttribute("consulta", new ConsultaDAO().buscarPorId(Integer.parseInt(id)));
+            request.setAttribute("consulta", DAOFactory.criarConsultaDAO().buscarPorId(Integer.parseInt(id)));
         }
         carregarListas(request);
         return "consulta-form.jsp";
@@ -23,8 +21,8 @@ public class FormConsulta implements ICommand {
 
     /** Listas usadas nos campos de selecao do formulario. */
     public static void carregarListas(HttpServletRequest request) throws Exception {
-        request.setAttribute("pacientes", new PacienteDAO().listarTodos());
-        request.setAttribute("medicos", new MedicoDAO().listarTodos());
+        request.setAttribute("pacientes", DAOFactory.criarPacienteDAO().listarTodos());
+        request.setAttribute("medicos", DAOFactory.criarMedicoDAO().listarTodos());
         request.setAttribute("horarios", AgendaService.HORARIOS);
         request.setAttribute("exames", ExameFactory.EXAMES);
     }

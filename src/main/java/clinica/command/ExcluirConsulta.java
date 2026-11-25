@@ -1,6 +1,6 @@
 package clinica.command;
 
-import clinica.dao.ConsultaDAO;
+import clinica.dao.DAOFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,7 +13,7 @@ public class ExcluirConsulta implements ICommand {
             throw new Exception("Exclusão permitida somente pelo botão Excluir (POST).");
         }
         int id = Integer.parseInt(request.getParameter("id"));
-        new ConsultaDAO().deletar(id);
+        DAOFactory.criarConsultaDAO().deletar(id);
         return "redirect:controller?acao=ListarConsultas&msg=excluido";
     }
 }

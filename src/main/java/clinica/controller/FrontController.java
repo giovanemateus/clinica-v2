@@ -32,14 +32,20 @@ public class FrontController extends HttpServlet {
             ICommand command = CommandFactory.criarCommand(acao);
             String pagina = command.executar(request, response);
 
-            if (pagina.startsWith("redirect:")) {
-                response.sendRedirect(pagina.substring("redirect:".length()));
-            } else {
-                request.getRequestDispatcher("/WEB-INF/views/" + pagina).forward(request, response);
-            }
+            mostrar(pagina, request, response);
         } catch (Exception e) {
             request.setAttribute("erro", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/erro.jsp").forward(request, response);
+            mostrar("erro.jsp", request, response);
         }
+    }
+
+    /** "redirect:..." redireciona; senao mostra a JSP (forward). */
+    private void mostrar(String pagina, HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (pagina.startsWith("redirect:")) {
+            response.sendRedirect(pagina.substring("redirect:".length()));
+            return;
+        }
+        request.getRequestDispatcher("/WEB-INF/views/" + pagina).forward(request, response);
     }
 }

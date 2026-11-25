@@ -1,7 +1,7 @@
 package clinica.command;
 
-import clinica.dao.ConsultaDAO;
-import clinica.dao.MedicoDAO;
+import clinica.dao.DAOFactory;
+import clinica.dao.IConsultaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,16 +13,16 @@ public class ListarConsultas implements ICommand {
 
     @Override
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        ConsultaDAO dao = new ConsultaDAO();
+        IConsultaDAO dao = DAOFactory.criarConsultaDAO();
         String medicoId = request.getParameter("medicoId");
 
-        if (medicoId != null && !medicoId.isEmpty()) {
-            int id = Integer.parseInt(medicoId);
-            request.setAttribute("consultas", dao.listarPorMedico(id));
-            request.setAttribute("medico", new MedicoDAO().buscarPorId(id));
-        } else {
+        if (medicoId == null || medicoId.isEmpty()) {
             request.setAttribute("consultas", dao.listarTodos());
+            return "consultas.jsp";
         }
+        int id = Integer.parseInt(medicoId);
+        request.setAttribute("consultas", dao.listarPorMedico(id));
+        request.setAttribute("medico", DAOFactory.criarMedicoDAO().buscarPorId(id));
         return "consultas.jsp";
     }
 }

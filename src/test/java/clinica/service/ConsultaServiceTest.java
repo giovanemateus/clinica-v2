@@ -5,6 +5,7 @@ import clinica.model.Consulta;
 import clinica.model.ConsultaBuilder;
 import clinica.model.Medico;
 import clinica.model.Paciente;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,10 @@ import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -147,6 +151,35 @@ class ConsultaServiceTest {
         assertEquals("Status inválido. Use: [Agendada, Confirmada, Realizada, Cancelada]", problema);
         assertEquals("Agendada", consulta.getStatus());
         verify(consultaDAO, never()).atualizar(any());
+    }
+
+    @Test
+    @DisplayName("Deve sugerir horarios do medico da consulta")
+    void sugerirHorarios() throws Exception {
+        //Arrange
+        Consulta consulta = consultaValida(0, "");
+        when(agendaService.sugerirHorarios(1, "2026-12-01", 0)).thenReturn(List.of("01/12/2026 às 09:30"));
+
+        //Act
+        List<String> sugestoes = consultaService.sugerirHorarios(consulta);
+
+        //Assert
+        assertEquals(1, sugestoes.size());
+    }
+
+    @Test
+    @DisplayName("Nao deve sugerir horarios quando a consulta nao tem medico")
+    void sugerirHorariosSemMedico() throws Exception {
+        //Arrange
+        Consulta consulta = consultaValida(0, "");
+        consulta.setMedico(null);
+
+        //Act
+        List<String> sugestoes = consultaService.sugerirHorarios(consulta);
+
+        //Assert
+        assertTrue(sugestoes.isEmpty());
+        verify(agendaService, never()).sugerirHorarios(anyInt(), anyString(), anyInt());
     }
 
     private Consulta consultaValida(int id, String exames) {

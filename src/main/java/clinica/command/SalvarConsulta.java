@@ -1,7 +1,6 @@
 package clinica.command;
 
-import clinica.dao.MedicoDAO;
-import clinica.dao.PacienteDAO;
+import clinica.dao.DAOFactory;
 import clinica.model.Consulta;
 import clinica.model.ConsultaBuilder;
 import clinica.model.Medico;
@@ -56,14 +55,14 @@ public class SalvarConsulta implements ICommand {
         if (vazio(pacienteId)) {
             return null;
         }
-        return new PacienteDAO().buscarPorId(Integer.parseInt(pacienteId));
+        return DAOFactory.criarPacienteDAO().buscarPorId(Integer.parseInt(pacienteId));
     }
 
     private Medico buscarMedico(String medicoId) throws Exception {
         if (vazio(medicoId)) {
             return null;
         }
-        return new MedicoDAO().buscarPorId(Integer.parseInt(medicoId));
+        return DAOFactory.criarMedicoDAO().buscarPorId(Integer.parseInt(medicoId));
     }
 
     /** Os checkboxes chegam como lista; no banco fica "Hemograma,RaioX". */

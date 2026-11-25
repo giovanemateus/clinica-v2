@@ -109,7 +109,7 @@ public class ConsultaDAO implements IConsultaDAO {
     @Override
     public List<String> listarHorariosOcupados(int medicoId, String data, int idIgnorar) throws SQLException {
         List<String> horarios = new ArrayList<>();
-        String sql = "SELECT TIME_FORMAT(hora, '%H:%i') AS h FROM consulta "
+        String sql = "SELECT hora FROM consulta "
                 + "WHERE medico_id = ? AND data = ? AND status <> 'Cancelada' AND id <> ?";
         try (Connection con = ConnectionFactory.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -118,7 +118,7 @@ public class ConsultaDAO implements IConsultaDAO {
             ps.setInt(3, idIgnorar);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                horarios.add(rs.getString("h"));
+                horarios.add(rs.getString("hora").substring(0, 5)); // "08:00:00" -> "08:00"
             }
         }
         return horarios;

@@ -15,7 +15,7 @@ agendamento de consultas com exames, registro de atendimento e uma API REST em J
 | DAOs | classes concretas | interfaces (`IConsultaDAO`...) e **DIP** com injeção pelo construtor |
 | Regra de salvar | dentro do Command | `ConsultaService` (usado pelas telas e pela API) |
 | API | só telas JSP | **API REST** em JSON com GET, POST, PUT, PATCH e DELETE |
-| Testes | não tinha | **18 testes unitários** (JUnit 5 + Mockito, padrão AAA) |
+| Testes | não tinha | **25 testes unitários** (JUnit 5 + Mockito + H2, padrão AAA) |
 | Exclusão | link GET | formulário POST |
 | Diagramas | draw.io | refeitos no padrão UML das aulas (pasta `docs/diagramas`) |
 
@@ -24,7 +24,7 @@ agendamento de consultas com exames, registro de atendimento e uma API REST em J
 - Java 17, Servlet 4 (`javax`), JSP + JSTL
 - MySQL 8 / MariaDB (XAMPP) via JDBC
 - Maven (gera `target/clinica.war`), Apache Tomcat 9 ou Jetty (plugin do Maven)
-- Gson (JSON), JUnit 5 e Mockito (testes)
+- Gson (JSON), JUnit 5, Mockito e H2 em memória (testes)
 
 ## Entidades e relacionamentos
 
@@ -40,15 +40,15 @@ agendamento de consultas com exames, registro de atendimento e uma API REST em J
 | **Decorator** (sem framework) | `clinica.decorator`: `Atendimento` (Component), `ConsultaSimples` (ConcreteComponent), `ExameDecorator` (Decorator), `Hemograma`, `Eletrocardiograma`, `RaioX`, `Ultrassom` (ConcreteDecorators) |
 | **MVC** | Model (`model` + `dao`), View (JSPs em `WEB-INF/views`), Controller (`FrontController`) |
 | **Command** | `ICommand` + uma classe por ação no pacote `command` |
-| **Factory Method** | `CommandFactory`, `ExameFactory`, `ServiceFactory`, `ConnectionFactory` |
+| **Factory Method** | `CommandFactory`, `ExameFactory`, `ServiceFactory`, `DAOFactory`, `ConnectionFactory` |
 | **Builder** | `ConsultaBuilder` (interface fluente) |
 | **DAO** | `ConsultaDAO`, `MedicoDAO`, `PacienteDAO`, `RegistroAtendimentoDAO` |
 | **SRP** | DAO só acessa o banco, Command só trata uma ação, `AgendaService` só cuida da agenda, `ConsultaService` só da regra de salvar |
 | **OCP** | um exame novo é só um Decorator novo; uma ação nova é só um Command novo |
 | **LSP** | qualquer exame substitui `Atendimento` sem quebrar o cálculo; o mock do Mockito substitui o `ConsultaDAO` nos testes |
 | **ISP** | interfaces pequenas (`ICommand` com 1 método, `Atendimento` com 2) |
-| **DIP** | `AgendaService` e `ConsultaService` dependem de `IConsultaDAO` (abstração), recebida pelo construtor |
-| **Calistenia de Objetos** | métodos curtos, atributos privados, retorno antecipado em vez de `else`, nomes sem abreviação |
+| **DIP** | `AgendaService` e `ConsultaService` dependem de `IConsultaDAO` (abstração), recebida pelo construtor. Commands e APIs pedem os DAOs para a `DAOFactory` e só enxergam as interfaces |
+| **Calistenia de Objetos** | sem `else` (retorno antecipado), um nível de indentação nos métodos da agenda, métodos curtos, atributos privados, nomes sem abreviação |
 
 ## Regras de negócio (automação)
 
@@ -114,13 +114,14 @@ ListarMedicos, FormMedico, SalvarMedico, ExcluirMedico, ListarPacientes, FormPac
 ## Testes unitários
 
 Ficam em `src/test/java`, seguindo o padrão **AAA** (Arrange, Act, Assert) com cenários positivos e negativos.
-O banco é simulado com o **Mockito** (o DAO "mockado" entra no lugar do `ConsultaDAO`).
+Nos services o banco é simulado com o **Mockito** (o DAO "mockado" entra no lugar do `ConsultaDAO`). O `ConsultaDAO` é testado com o banco **H2 em memória** (modo MySQL), sem mexer no `clinica_db`.
 
 | Classe de teste | O que testa |
 | --- | --- |
 | `ExameDecoratorTest` | custo e descrição com e sem exames, fábrica de exames, exame inválido |
-| `AgendaServiceTest` | horário livre, horário ocupado, fim de semana, data no passado, sugestão de horários |
-| `ConsultaServiceTest` | inserir, atualizar, não salvar com conflito, não salvar sem paciente, consulta cancelada, PATCH de status válido e inválido |
+| `AgendaServiceTest` | horário livre, horário ocupado, fim de semana, data no passado, sugestão de horários, agenda lotada |
+| `ConsultaServiceTest` | inserir, atualizar, não salvar com conflito, não salvar sem paciente, consulta cancelada, PATCH de status válido e inválido, sugestões com e sem médico |
+| `ConsultaDAOTest` (H2) | inserir e buscar por id, id inexistente, horários ocupados sem as canceladas, consultas do médico (1:N) |
 | `ConsultaBuilderTest` | valores padrão e especialidade copiada do médico |
 
 ## Como executar

@@ -27,6 +27,8 @@ public class AgendaService {
         "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
     };
 
+    private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private IConsultaDAO consultaDAO;
 
     public AgendaService(IConsultaDAO consultaDAO) {
@@ -54,31 +56,41 @@ public class AgendaService {
         return null; // horario livre
     }
 
-    /** Procura os proximos 5 horarios livres do medico a partir da data informada. */
+    /** Procura os proximos 5 horarios livres do medico a partir da data informada (ate 30 dias). */
     public List<String> sugerirHorarios(int medicoId, String data, int idConsulta) throws SQLException {
         List<String> sugestoes = new ArrayList<>();
-        LocalDate dia = LocalDate.parse(data);
-        if (dia.isBefore(LocalDate.now())) {
-            dia = LocalDate.now();
-        }
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        int diasPesquisados = 0;
-        while (sugestoes.size() < 5 && diasPesquisados < 30) {
-            if (!ehFimDeSemana(dia)) {
-                List<String> ocupados = consultaDAO.listarHorariosOcupados(medicoId, dia.toString(), idConsulta);
-                for (String horario : HORARIOS) {
-                    boolean livre = !ocupados.contains(horario);
-                    boolean futuro = LocalDateTime.of(dia, LocalTime.parse(horario)).isAfter(LocalDateTime.now());
-                    if (livre && futuro && sugestoes.size() < 5) {
-                        sugestoes.add(dia.format(formato) + " às " + horario);
-                    }
-                }
-            }
-            dia = dia.plusDays(1);
-            diasPesquisados++;
+        LocalDate primeiroDia = primeiroDiaDaBusca(data);
+        for (int diasPesquisados = 0; sugestoes.size() < 5 && diasPesquisados < 30; diasPesquisados++) {
+            adicionarHorariosLivres(sugestoes, medicoId, primeiroDia.plusDays(diasPesquisados), idConsulta);
         }
         return sugestoes;
+    }
+
+    private LocalDate primeiroDiaDaBusca(String data) {
+        LocalDate dia = LocalDate.parse(data);
+        if (dia.isBefore(LocalDate.now())) {
+            return LocalDate.now();
+        }
+        return dia;
+    }
+
+    private void adicionarHorariosLivres(List<String> sugestoes, int medicoId, LocalDate dia, int idConsulta)
+            throws SQLException {
+        if (ehFimDeSemana(dia)) {
+            return;
+        }
+        List<String> ocupados = consultaDAO.listarHorariosOcupados(medicoId, dia.toString(), idConsulta);
+        for (String horario : HORARIOS) {
+            adicionarSeLivre(sugestoes, ocupados, dia, horario);
+        }
+    }
+
+    private void adicionarSeLivre(List<String> sugestoes, List<String> ocupados, LocalDate dia, String horario) {
+        boolean livre = !ocupados.contains(horario);
+        boolean futuro = LocalDateTime.of(dia, LocalTime.parse(horario)).isAfter(LocalDateTime.now());
+        if (livre && futuro && sugestoes.size() < 5) {
+            sugestoes.add(dia.format(FORMATO_DATA) + " às " + horario);
+        }
     }
 
     private boolean ehFimDeSemana(LocalDate dia) {

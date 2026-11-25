@@ -12,7 +12,7 @@ entity ": Consulta" as con
 activate cli
 cli -> api : 1: service(request, response) : void
 activate api
-api -> api : 1.1: doPatch(request, response) : void
+api -> api : 1.1: patch(request, response) : void
 activate api
 api -> api : 1.1.1: pegarId(request) : int
 api -> dao : 1.1.2: buscarPorId(id:int) : Consulta

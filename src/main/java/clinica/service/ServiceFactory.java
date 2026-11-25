@@ -1,6 +1,6 @@
 package clinica.service;
 
-import clinica.dao.ConsultaDAO;
+import clinica.dao.DAOFactory;
 
 /**
  * FACTORY METHOD dos services.
@@ -10,10 +10,10 @@ import clinica.dao.ConsultaDAO;
 public class ServiceFactory {
 
     public static AgendaService criarAgendaService() {
-        return new AgendaService(new ConsultaDAO());
+        return new AgendaService(DAOFactory.criarConsultaDAO());
     }
 
     public static ConsultaService criarConsultaService() {
-        return new ConsultaService(new ConsultaDAO(), criarAgendaService());
+        return new ConsultaService(DAOFactory.criarConsultaDAO(), criarAgendaService());
     }
 }

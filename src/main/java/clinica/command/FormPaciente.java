@@ -1,6 +1,6 @@
 package clinica.command;
 
-import clinica.dao.PacienteDAO;
+import clinica.dao.DAOFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -11,7 +11,7 @@ public class FormPaciente implements ICommand {
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String id = request.getParameter("id");
         if (id != null && !id.isEmpty()) {
-            request.setAttribute("paciente", new PacienteDAO().buscarPorId(Integer.parseInt(id)));
+            request.setAttribute("paciente", DAOFactory.criarPacienteDAO().buscarPorId(Integer.parseInt(id)));
         }
         return "paciente-form.jsp";
     }

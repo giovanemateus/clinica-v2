@@ -5,16 +5,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * Classe base (abstrata) das APIs REST.
- * Tem o que todas as APIs usam: ler/escrever JSON, pegar o id da URL
- * e tratar o verbo PATCH (o HttpServlet nao tem doPatch).
+ * Recebe a requisicao, chama o metodo do verbo HTTP (get, post, put, patch, delete)
+ * e trata os erros num lugar so. Tambem le/escreve JSON e pega o id da URL.
+ * Verbo que a API nao sobrescrever responde 405.
  */
 public abstract class ApiBase extends HttpServlet {
 
@@ -23,17 +24,12 @@ public abstract class ApiBase extends HttpServlet {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         try {
-            if ("PATCH".equals(request.getMethod())) {
-                doPatch(request, response);
-                return;
-            }
-            super.service(request, response);
+            executarVerbo(request.getMethod(), request, response);
         } catch (NumberFormatException e) {
             enviarErro(response, HttpServletResponse.SC_BAD_REQUEST, "Id inválido na URL.");
         } catch (JsonSyntaxException e) {
@@ -43,9 +39,39 @@ public abstract class ApiBase extends HttpServlet {
         }
     }
 
-    /** Por padrao o PATCH nao e permitido (405). A API que aceitar sobrescreve. */
-    protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        enviarErro(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Método PATCH não permitido aqui.");
+    private void executarVerbo(String verbo, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        switch (verbo) {
+            case "GET": get(request, response); return;
+            case "POST": post(request, response); return;
+            case "PUT": put(request, response); return;
+            case "PATCH": patch(request, response); return;
+            case "DELETE": delete(request, response); return;
+            default: naoPermitido(response);
+        }
+    }
+
+    protected void get(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        naoPermitido(response);
+    }
+
+    protected void post(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        naoPermitido(response);
+    }
+
+    protected void put(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        naoPermitido(response);
+    }
+
+    protected void patch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        naoPermitido(response);
+    }
+
+    protected void delete(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        naoPermitido(response);
+    }
+
+    private void naoPermitido(HttpServletResponse response) throws IOException {
+        enviarErro(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Método não permitido neste recurso.");
     }
 
     /** "/5" -> 5 | null ou "/" -> SEM_ID */
@@ -80,5 +106,15 @@ public abstract class ApiBase extends HttpServlet {
         erro.put("status", status);
         erro.put("erro", mensagem);
         enviarJson(response, status, erro);
+    }
+
+    /** 409: a regra de negocio nao deixou salvar (ex.: horario ocupado), com as sugestoes. */
+    protected void enviarConflito(HttpServletResponse response, String mensagem, List<String> sugestoes)
+            throws IOException {
+        Map<String, Object> erro = new LinkedHashMap<>();
+        erro.put("status", HttpServletResponse.SC_CONFLICT);
+        erro.put("erro", mensagem);
+        erro.put("sugestoes", sugestoes);
+        enviarJson(response, HttpServletResponse.SC_CONFLICT, erro);
     }
 }

@@ -1,6 +1,6 @@
 package clinica.command;
 
-import clinica.dao.PacienteDAO;
+import clinica.dao.DAOFactory;
 import java.sql.SQLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,7 +15,7 @@ public class ExcluirPaciente implements ICommand {
         }
         int id = Integer.parseInt(request.getParameter("id"));
         try {
-            new PacienteDAO().deletar(id);
+            DAOFactory.criarPacienteDAO().deletar(id);
         } catch (SQLException e) {
             throw new Exception("Não é possível excluir: existem consultas cadastradas para este paciente.");
         }

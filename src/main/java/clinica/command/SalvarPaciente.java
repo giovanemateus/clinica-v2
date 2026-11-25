@@ -1,6 +1,7 @@
 package clinica.command;
 
-import clinica.dao.PacienteDAO;
+import clinica.dao.DAOFactory;
+import clinica.dao.IPacienteDAO;
 import clinica.model.Paciente;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,12 +25,12 @@ public class SalvarPaciente implements ICommand {
             return "paciente-form.jsp";
         }
 
-        PacienteDAO dao = new PacienteDAO();
+        IPacienteDAO dao = DAOFactory.criarPacienteDAO();
         if (paciente.getId() == 0) {
             dao.inserir(paciente);
-        } else {
-            dao.atualizar(paciente);
+            return "redirect:controller?acao=ListarPacientes&msg=salvo";
         }
+        dao.atualizar(paciente);
         return "redirect:controller?acao=ListarPacientes&msg=salvo";
     }
 }
