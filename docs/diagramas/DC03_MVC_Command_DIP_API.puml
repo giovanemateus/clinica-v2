@@ -1,0 +1,104 @@
+@startuml DC03_MVC_Command_DIP_API
+!include estilo.iuml
+title Diagrama de Classes - MVC + Command + DIP + API REST (Agendar Consulta)
+
+class HttpServlet
+
+class FrontController {
+  # service(request, response) : void
+}
+
+class CommandFactory {
+  + {static} criarCommand(acao : String) : ICommand
+}
+
+interface ICommand <<interface>> {
+  + executar(request, response) : String
+}
+
+class SalvarConsulta {
+  + executar(request, response) : String
+  - montarConsulta(request) : Consulta
+}
+
+abstract class ApiBase {
+  # service(request, response) : void
+  # doPatch(request, response) : void
+  # pegarId(request) : int
+  # lerJson(request, classe : Class) : T
+  # enviarJson(response, status : int, objeto : Object) : void
+}
+
+class ConsultaApi {
+  # doGet(request, response) : void
+  # doPost(request, response) : void
+  # doPut(request, response) : void
+  # doPatch(request, response) : void
+  # doDelete(request, response) : void
+}
+
+class ConsultaRequest <<record>> {
+  pacienteId : Integer
+  medicoId : Integer
+  data : String
+  hora : String
+  valor : Double
+  exames : String
+}
+
+class ServiceFactory {
+  + {static} criarAgendaService() : AgendaService
+  + {static} criarConsultaService() : ConsultaService
+}
+
+class ConsultaService {
+  + ConsultaService(consultaDAO : IConsultaDAO, agendaService : AgendaService)
+  + salvar(c : Consulta) : String
+  + calcularValorTotal(c : Consulta) : void
+  + alterarStatus(c : Consulta, status : String) : String
+  + sugerirHorarios(c : Consulta) : List<String>
+}
+
+class AgendaService {
+  + {static} HORARIOS : String[]
+  + AgendaService(consultaDAO : IConsultaDAO)
+  + verificarDisponibilidade(c : Consulta) : String
+  + sugerirHorarios(medicoId : int, data : String, idConsulta : int) : List<String>
+  - ehFimDeSemana(dia : LocalDate) : boolean
+}
+
+interface IConsultaDAO <<interface>> {
+  + inserir(c : Consulta) : int
+  + atualizar(c : Consulta) : void
+  + deletar(id : int) : void
+  + buscarPorId(id : int) : Consulta
+  + listarTodos() : List<Consulta>
+  + listarPorMedico(medicoId : int) : List<Consulta>
+  + listarHorariosOcupados(medicoId : int, data : String, idIgnorar : int) : List<String>
+}
+
+class ConsultaDAO
+
+FrontController --|> HttpServlet
+ApiBase --|> HttpServlet
+ConsultaApi --|> ApiBase
+FrontController ..> CommandFactory : usa
+CommandFactory ..> ICommand : <<create>>
+SalvarConsulta ..|> ICommand
+SalvarConsulta ..> ServiceFactory : usa
+ConsultaApi ..> ServiceFactory : usa
+ConsultaApi ..> ConsultaRequest : usa
+ConsultaApi --> "1" IConsultaDAO : consultaDAO
+ServiceFactory ..> ConsultaService : <<create>>
+ConsultaService --> "1" IConsultaDAO : consultaDAO
+ConsultaService --> "1" AgendaService : agendaService
+AgendaService --> "1" IConsultaDAO : consultaDAO
+ConsultaDAO ..|> IConsultaDAO
+
+note bottom of IConsultaDAO
+  DIP: os services (alto nível) dependem da
+  abstração IConsultaDAO, recebida pelo construtor.
+  O ConsultaDAO (baixo nível) implementa a interface.
+  Nos testes, o Mockito substitui o DAO (LSP).
+end note
+@enduml

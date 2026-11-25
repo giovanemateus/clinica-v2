@@ -1,0 +1,85 @@
+@startuml DC02_Decorator_Exames
+!include estilo.iuml
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 70
+title Diagrama de Classes - Padrão Decorator (Consulta + Exames)
+
+interface Atendimento <<interface>> {
+  + getDescricao() : String
+  + custo() : double
+}
+
+class ConsultaSimples {
+  - descricao : String
+  - precobase : double
+  + ConsultaSimples(especialidade : String, precobase : double)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class ExameDecorator {
+  # atendimentodecorator : Atendimento
+  + ExameDecorator(atendimentodecorator : Atendimento)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class Hemograma {
+  + Hemograma(atendimento : Atendimento)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class Eletrocardiograma {
+  + Eletrocardiograma(atendimento : Atendimento)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class RaioX {
+  + RaioX(atendimento : Atendimento)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class Ultrassom {
+  + Ultrassom(atendimento : Atendimento)
+  + getDescricao() : String
+  + custo() : double
+}
+
+class ExameFactory {
+  + {static} EXAMES : String[]
+  + {static} montar(especialidade : String, valorConsulta : double, exames : String) : Atendimento
+  + {static} adicionarExame(atendimento : Atendimento, exame : String) : Atendimento
+}
+
+class ConsultaService {
+  + calcularValorTotal(c : Consulta) : void
+}
+
+Atendimento <|.. ConsultaSimples
+Atendimento <|.. ExameDecorator
+ExameDecorator "0..*" o--> "1" Atendimento : atendimentodecorator
+ExameDecorator <|-- Hemograma
+ExameDecorator <|-- Eletrocardiograma
+ExameDecorator <|-- RaioX
+ExameDecorator <|-- Ultrassom
+ExameFactory .up.> Atendimento : <<create>>
+ConsultaService .right.> ExameFactory : usa
+
+note bottom of ConsultaSimples
+  ConcreteComponent:
+  consulta sem exames
+  (preço base).
+end note
+
+note bottom of Ultrassom
+  ConcreteDecorators: cada exame soma
+  o seu valor no custo() e o seu nome
+  na getDescricao().
+  Hemograma +45 | Eletrocardiograma +120
+  Raio-X +90 | Ultrassom +150
+end note
+@enduml

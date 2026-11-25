@@ -1,0 +1,31 @@
+skinparam style strictuml
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #000000
+skinparam class {
+  BackgroundColor #FFFFE0
+  BorderColor #8B0000
+  FontStyle bold
+}
+skinparam note {
+  BackgroundColor #FFFFFF
+  BorderColor #000000
+}
+skinparam sequence {
+  LifeLineBorderColor #000000
+  LifeLineBackgroundColor #FFFFFF
+  ParticipantBackgroundColor #FFFFE0
+  ParticipantBorderColor #000000
+  ActorBackgroundColor #FFFFE0
+  ActorBorderColor #000000
+  BoundaryBackgroundColor #FFFFC8
+  BoundaryBorderColor #000000
+  ControlBackgroundColor #FFFFC8
+  ControlBorderColor #000000
+  EntityBackgroundColor #FFFFC8
+  EntityBorderColor #000000
+}
+hide circle
+hide empty members

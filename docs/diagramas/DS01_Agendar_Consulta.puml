@@ -1,0 +1,77 @@
+@startuml DS01_Agendar_Consulta
+!include estilo.iuml
+mainframe **sd** Agendar Consulta com Exames
+
+actor ": Recepcionista" as rec
+boundary ": consulta-form" as form
+control ": FrontController" as fc
+control ": CommandFactory" as cf
+control ": SalvarConsulta" as cmd
+entity ": ConsultaBuilder" as bld
+entity ": Consulta" as con
+control ": ConsultaService" as srv
+control ": AgendaService" as ag
+control ": ExameFactory" as fab
+entity ": Atendimento" as atd
+entity ": ConsultaDAO" as dao
+boundary ": consultas" as lista
+
+activate rec
+rec -> form : 1: salvar() : void
+activate form
+form -> fc : 1.1: service(request, response) : void
+activate fc
+fc -> cf : 1.1.1: criarCommand(acao:String) : ICommand
+activate cf
+create cmd
+cf --> cmd : <<create>>\n1.1.1.1: SalvarConsulta()
+deactivate cf
+fc -> cmd : 1.1.2: executar(request, response) : String
+activate cmd
+create bld
+cmd --> bld : <<create>>\n1.1.2.1: ConsultaBuilder()
+activate bld
+create con
+bld --> con : <<create>>\n1.1.2.1.1: Consulta()
+deactivate bld
+cmd -> bld : 1.1.2.2: comPaciente(p:Paciente) ... comExames(exames:String) : ConsultaBuilder
+activate bld
+deactivate bld
+cmd -> bld : 1.1.2.3: constroi() : Consulta
+activate bld
+deactivate bld
+create srv
+cmd --> srv : <<create>>\n1.1.2.4: ConsultaService(dao:IConsultaDAO, agenda:AgendaService)
+cmd -> srv : 1.1.2.5: salvar(c:Consulta) : String
+activate srv
+srv -> ag : 1.1.2.5.1: verificarDisponibilidade(c:Consulta) : String
+activate ag
+ag -> dao : 1.1.2.5.1.1: listarHorariosOcupados(medicoId:int, data:String, idIgnorar:int) : List<String>
+activate dao
+deactivate dao
+deactivate ag
+srv -> srv : 1.1.2.5.2: calcularValorTotal(c:Consulta) : void
+activate srv
+srv -> fab : 1.1.2.5.2.1: montar(especialidade:String, valor:double, exames:String) : Atendimento
+activate fab
+create atd
+fab --> atd : <<create>>\n1.1.2.5.2.1.1: ConsultaSimples(), Hemograma(), RaioX()
+deactivate fab
+srv -> atd : 1.1.2.5.2.2: custo() : double
+activate atd
+deactivate atd
+srv -> con : 1.1.2.5.2.3: setValorTotal(valorTotal:double) : void
+activate con
+deactivate con
+deactivate srv
+srv -> dao : 1.1.2.5.3: inserir(c:Consulta) : int
+activate dao
+deactivate dao
+deactivate srv
+deactivate cmd
+fc -> lista : 1.1.3: sendRedirect(url:String) : void
+activate lista
+deactivate lista
+deactivate fc
+deactivate form
+@enduml

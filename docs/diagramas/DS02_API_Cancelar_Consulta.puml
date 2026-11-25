@@ -1,0 +1,40 @@
+@startuml DS02_API_Cancelar_Consulta
+!include estilo.iuml
+mainframe **sd** API REST - Cancelar Consulta (PATCH /api/consultas/{id})
+
+actor ": Cliente da API" as cli
+control ": ConsultaApi" as api
+entity ": ConsultaDAO" as dao
+control ": ServiceFactory" as sf
+control ": ConsultaService" as srv
+entity ": Consulta" as con
+
+activate cli
+cli -> api : 1: service(request, response) : void
+activate api
+api -> api : 1.1: doPatch(request, response) : void
+activate api
+api -> api : 1.1.1: pegarId(request) : int
+api -> dao : 1.1.2: buscarPorId(id:int) : Consulta
+activate dao
+deactivate dao
+api -> api : 1.1.3: lerJson(request, classe:Class) : StatusRequest
+api -> sf : 1.1.4: criarConsultaService() : ConsultaService
+activate sf
+create srv
+sf --> srv : <<create>>\n1.1.4.1: ConsultaService(dao:IConsultaDAO, agenda:AgendaService)
+deactivate sf
+api -> srv : 1.1.5: alterarStatus(c:Consulta, status:String) : String
+activate srv
+srv -> con : 1.1.5.1: setStatus(status:String) : void
+activate con
+deactivate con
+srv -> dao : 1.1.5.2: atualizar(c:Consulta) : void
+activate dao
+deactivate dao
+deactivate srv
+api -> api : 1.1.6: enviarJson(response, status:int, objeto:Object) : void
+deactivate api
+api --> cli : 200 OK (JSON da consulta)
+deactivate api
+@enduml

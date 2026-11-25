@@ -1,0 +1,77 @@
+@startuml DC01_Entidades_Relacionamentos
+!include estilo.iuml
+title Diagrama de Classes - Entidades e Relacionamentos (V2)
+
+class Paciente {
+  - id : int
+  - nome : String
+  - cpf : String
+  - telefone : String
+  - email : String
+}
+
+class Medico {
+  - id : int
+  - nome : String
+  - crm : String
+  - especialidade : String
+  - telefone : String
+}
+
+class Consulta {
+  - id : int
+  - data : String
+  - hora : String
+  - especialidade : String
+  - tipoAtendimento : String
+  - status : String
+  - valor : double
+  - formaPagamento : String
+  - observacoes : String
+  - dataCriacao : String
+  - exames : String
+  - valorTotal : double
+}
+
+class RegistroAtendimento {
+  - id : int
+  - consultaId : int
+  - diagnostico : String
+  - prescricao : String
+  - dataRegistro : String
+}
+
+class ConsultaBuilder {
+  - consulta : Consulta
+  + ConsultaBuilder()
+  + comId(id : int) : ConsultaBuilder
+  + comPaciente(paciente : Paciente) : ConsultaBuilder
+  + comMedico(medico : Medico) : ConsultaBuilder
+  + naData(data : String) : ConsultaBuilder
+  + noHorario(hora : String) : ConsultaBuilder
+  + comStatus(status : String) : ConsultaBuilder
+  + comValor(valor : double) : ConsultaBuilder
+  + comExames(exames : String) : ConsultaBuilder
+  + comValorTotal(valorTotal : double) : ConsultaBuilder
+  + constroi() : Consulta
+}
+
+Consulta "*" --> "1" Paciente : paciente
+Consulta "*" --> "1" Medico : medico
+Consulta "1" --> "0..1" RegistroAtendimento : registro
+ConsultaBuilder ..> Consulta : <<create>>
+
+note bottom of Consulta
+  Relacionamento 1:N: um médico (e um paciente)
+  possui várias consultas.
+  Relacionamento 1:1: cada consulta possui no
+  máximo um registro de atendimento.
+end note
+
+note right of ConsultaBuilder
+  Padrão Builder (interface fluente).
+  Getters e setters omitidos.
+  Paciente, Medico e RegistroAtendimento
+  da Consulta aparecem como associações.
+end note
+@enduml
